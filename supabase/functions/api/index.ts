@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
+const allowedOrigin = Deno.env.get("LEBSE_WEB_ORIGIN") ?? "https://lebse-staging-web7.vercel.app";
 const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("LEBSE_WEB_ORIGIN") ?? "http://127.0.0.1:5173",
+  "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Headers": "authorization, content-type, x-csrf-token, x-lebse-gateway",
   "Access-Control-Allow-Methods": "GET,POST,PATCH,OPTIONS",
   "Vary": "Origin",
@@ -14,6 +15,18 @@ function json(body: unknown, status = 200) {
   });
 }
 
+async function publicListing(id: string) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!supabaseUrl || !anonKey) return null;
+  const headers = { apikey: anonKey, Authorization: `Bearer ${anonKey}` };
+  const response = await fetch(`${supabaseUrl}/rest/v1/listings?select=id,seller_id,name,price_minor,brand,size,category,condition,description,images,status,created_at&id=eq.${encodeURIComponent(id)}&limit=1`, { headers });
+  if (!response.ok) return null;
+  const rows = await response.json();
+  const item = rows[0];
+  if (!item) return null;
+  return { ...item, price: Number(item.price_minor ?? 0) / 100, image: Array.isArray(item.images) ? item.images[0] : null };
+}
 async function publicBootstrap() {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -54,6 +67,13 @@ serve(async (req) => {
     if (result) return json(result);
   }
 
+  const listingMatch = url.pathname.match(/\/listings\/([^/]+)$/);
+  if (req.method === "GET" && listingMatch) {
+    const result = await publicListing(listingMatch[1]);
+    if (result) return json(result);
+    return json({ error: "This piece could not be found." }, 404);
+  }
+
   // Migration bridge: keep the existing API contract while routes move one at a time.
   const upstream = upstreamFor(req);
   if (!upstream) return json({ error: "API migration in progress", code: "legacy_origin_missing" }, 503);
@@ -65,3 +85,9 @@ serve(async (req) => {
   Object.entries(corsHeaders).forEach(([key, value]) => out.set(key, value));
   return new Response(response.body, { status: response.status, headers: out });
 });
+
+
+
+
+
+
