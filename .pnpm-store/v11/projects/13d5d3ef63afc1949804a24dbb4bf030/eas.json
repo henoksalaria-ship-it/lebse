@@ -3,7 +3,7 @@
   "build": {
     "preview": {"distribution": "internal", "android": {"buildType": "apk"}, "ios": {"simulator": false}},
     "simulator": {"extends": "preview", "ios": {"simulator": true}},
-    "production": {"android": {"buildType": "app-bundle"}},
+    "production": {"env": {"EXPO_PUBLIC_MARKETPLACE_URL": "https://lebse-staging-web7.vercel.app"}, "android": {"buildType": "app-bundle"}},
     "production-apk": {"extends": "production", "distribution": "internal", "android": {"buildType": "apk"}}
   }
 }
