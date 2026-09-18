@@ -4,6 +4,6 @@ export default {
  expo:{name:'Lebse',slug:'lebse-mobile',scheme:'lebse',version:'0.2.0',orientation:'portrait',userInterfaceStyle:'light',backgroundColor:'#f8f5ee',
   ios:{supportsTablet:true,bundleIdentifier:'com.lebse.marketplace',infoPlist:{NSCameraUsageDescription:'Add photos of your own pieces and order evidence.',NSPhotoLibraryUsageDescription:'Choose listing and order evidence photos.',ITSAppUsesNonExemptEncryption:false}},
   android:{package:'com.lebse.marketplace',permissions:['android.permission.INTERNET'],blockedPermissions:['android.permission.RECORD_AUDIO','android.permission.ACCESS_FINE_LOCATION','android.permission.ACCESS_COARSE_LOCATION']},
-  plugins:['expo-router'],experiments:{typedRoutes:true},extra:{marketplaceOrigin:appUrl||null}
+  plugins:['expo-router'],experiments:{typedRoutes:true},extra:{marketplaceOrigin:appUrl||null,eas:{projectId:'ac898d38-2199-44c0-80cc-40d6d156d94d'}}
  }
 };
