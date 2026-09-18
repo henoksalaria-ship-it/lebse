@@ -1,14 +1,11 @@
 # Supabase Edge API migration
 
-The first migration step is a compatibility gateway at:
+The Edge Function serves `health` directly and serves `bootstrap` directly when the public tables are available. Other routes remain behind the compatibility bridge until migrated.
 
-`/functions/v1/api/*`
+Required secrets:
 
-Set these Edge Function secrets in the Supabase dashboard:
+- `LEBSE_WEB_ORIGIN` — Vercel staging origin
+- `SUPABASE_ANON_KEY` — the project's publishable/anon key
+- `LEBSE_LEGACY_API_ORIGIN` — optional private API origin during migration
 
-- `LEBSE_WEB_ORIGIN` — the Vercel staging origin
-- `LEBSE_LEGACY_API_ORIGIN` — the private Render API origin while routes are being migrated
-
-`/health` is served directly by the Edge Function. Other routes are forwarded server-side through the bridge so clients keep the existing `/api/...` contract. Routes can then be moved from `server/index.mjs` into this function incrementally without changing the app.
-
-Do not put `LEBSE_LEGACY_API_ORIGIN`, database passwords, or service-role keys in Vercel or the mobile app.
+`SUPABASE_URL` is provided automatically by Supabase Edge Functions. Keep service-role keys and database passwords out of clients and Vercel.

@@ -14,6 +14,29 @@ function json(body: unknown, status = 200) {
   });
 }
 
+async function publicBootstrap() {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!supabaseUrl || !anonKey) return null;
+  const headers = { apikey: anonKey, Authorization: `Bearer ${anonKey}` };
+  const [usersResponse, listingsResponse] = await Promise.all([
+    fetch(`${supabaseUrl}/rest/v1/users?select=id,name,username,bio,closet_description,city&order=name`, { headers }),
+    fetch(`${supabaseUrl}/rest/v1/listings?select=id,seller_id,name,price_minor,brand,size,category,condition,description,images,status,created_at&status=in.(active,reserved,sold)&order=created_at.desc`, { headers }),
+  ]);
+  if (!usersResponse.ok || !listingsResponse.ok) return null;
+  const users = await usersResponse.json();
+  const listings = await listingsResponse.json();
+  return {
+    csrf: null,
+    legal_version: "2026-01",
+    terms_accepted: false,
+    user: null,
+    users,
+    listings: listings.map((item: Record<string, unknown>) => ({ ...item, price: Number(item.price_minor ?? 0) / 100, image: Array.isArray(item.images) ? item.images[0] : null })),
+    saved: [], following: [], conversations: [], orders: [], notifications: [],
+  };
+}
+
 function upstreamFor(req: Request) {
   const base = Deno.env.get("LEBSE_LEGACY_API_ORIGIN");
   if (!base) return null;
@@ -25,12 +48,13 @@ function upstreamFor(req: Request) {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const url = new URL(req.url);
-  if (url.pathname.endsWith("/health")) {
-    return json({ status: "ok", mode: "supabase-edge-staging", payments: "simulated", delivery: "mock" });
+  if (url.pathname.endsWith("/health")) return json({ status: "ok", mode: "supabase-edge-staging", payments: "simulated", delivery: "mock" });
+  if (req.method === "GET" && url.pathname.endsWith("/bootstrap")) {
+    const result = await publicBootstrap();
+    if (result) return json(result);
   }
 
   // Migration bridge: keep the existing API contract while routes move one at a time.
-  // The legacy origin is a server-side secret and is never returned to clients.
   const upstream = upstreamFor(req);
   if (!upstream) return json({ error: "API migration in progress", code: "legacy_origin_missing" }, 503);
   const headers = new Headers(req.headers);
