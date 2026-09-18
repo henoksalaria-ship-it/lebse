@@ -1,0 +1,65 @@
+# Dedicated private pilot. Paid instances require owner approval at creation.
+services:
+  - type: web
+    name: lebse-staging-api
+    runtime: node
+    region: frankfurt
+    plan: starter
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: node server/hosted.mjs
+    healthCheckPath: /healthz
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_VERSION
+        value: 24.14.0
+      - key: NODE_ENV
+        value: production
+      - key: LEBSE_ENV
+        value: staging
+      - key: LEBSE_TEST_MODE
+        value: "true"
+      - key: LEBSE_DELIVERY_PROVIDER
+        value: mock
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_CA_CERT
+        sync: false
+      - key: LEBSE_STAGING_ORIGIN
+        sync: false
+      - key: LEBSE_GATEWAY_SECRET
+        generateValue: true
+      - key: LEBSE_OPS_TOKEN
+        generateValue: true
+      - key: LEBSE_TEST_WEBHOOK_SECRET
+        generateValue: true
+  - type: worker
+    name: lebse-staging-worker
+    runtime: node
+    region: frankfurt
+    plan: starter
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: node server/worker.mjs
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_VERSION
+        value: 24.14.0
+      - key: NODE_ENV
+        value: production
+      - key: LEBSE_ENV
+        value: staging
+      - key: LEBSE_TEST_MODE
+        value: "true"
+      - key: LEBSE_DELIVERY_PROVIDER
+        value: mock
+      - key: DATABASE_URL
+        fromService: {type: web, name: lebse-staging-api, envVarKey: DATABASE_URL}
+      - key: DATABASE_CA_CERT
+        fromService: {type: web, name: lebse-staging-api, envVarKey: DATABASE_CA_CERT}
+      - key: LEBSE_STAGING_ORIGIN
+        fromService: {type: web, name: lebse-staging-api, envVarKey: LEBSE_STAGING_ORIGIN}
+      - key: LEBSE_GATEWAY_SECRET
+        fromService: {type: web, name: lebse-staging-api, envVarKey: LEBSE_GATEWAY_SECRET}
+      - key: LEBSE_OPS_TOKEN
+        fromService: {type: web, name: lebse-staging-api, envVarKey: LEBSE_OPS_TOKEN}
+      - key: LEBSE_TEST_WEBHOOK_SECRET
+        fromService: {type: web, name: lebse-staging-api, envVarKey: LEBSE_TEST_WEBHOOK_SECRET}

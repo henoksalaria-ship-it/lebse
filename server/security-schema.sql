@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS legal_versions(version text PRIMARY KEY, content jsonb NOT NULL, content_hash text NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS legal_acceptances(id text PRIMARY KEY,user_id text NOT NULL REFERENCES users(id),version text NOT NULL REFERENCES legal_versions(version),content_hash text NOT NULL,age_confirmed boolean NOT NULL CHECK(age_confirmed),accepted_at timestamptz NOT NULL DEFAULT now(),UNIQUE(user_id,version));
+CREATE TABLE IF NOT EXISTS consent_receipts(id text PRIMARY KEY,version text NOT NULL,external_media boolean NOT NULL,updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS consent_history(id text PRIMARY KEY,receipt_id text NOT NULL REFERENCES consent_receipts(id),version text NOT NULL,external_media boolean NOT NULL,source text NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS security_limits(bucket text PRIMARY KEY,count integer NOT NULL,expires_at timestamptz NOT NULL);
+CREATE TABLE IF NOT EXISTS security_audit(id text PRIMARY KEY,actor_id text,action text NOT NULL,subject_id text,details jsonb NOT NULL DEFAULT '{}',created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS safety_cases(id text PRIMARY KEY,user_id text NOT NULL REFERENCES users(id),subject_type text NOT NULL,subject_id text NOT NULL,rule text NOT NULL,hold boolean NOT NULL DEFAULT false,status text NOT NULL DEFAULT 'open' CHECK(status IN ('open','approved','rejected')),details jsonb NOT NULL DEFAULT '{}',resolution text,created_at timestamptz NOT NULL DEFAULT now(),resolved_at timestamptz,UNIQUE(user_id,subject_type,subject_id,rule));
+CREATE TABLE IF NOT EXISTS safety_requests(id text PRIMARY KEY,user_id text NOT NULL REFERENCES users(id),kind text NOT NULL,subject_id text NOT NULL DEFAULT '',description text NOT NULL,status text NOT NULL DEFAULT 'received',created_at timestamptz NOT NULL DEFAULT now());
+ALTER TABLE safety_requests ADD COLUMN IF NOT EXISTS response text;
+ALTER TABLE safety_requests ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+CREATE INDEX IF NOT EXISTS safety_cases_subject ON safety_cases(subject_type,subject_id,status);
+CREATE INDEX IF NOT EXISTS safety_requests_user ON safety_requests(user_id,created_at DESC);
+CREATE INDEX IF NOT EXISTS security_audit_date ON security_audit(created_at);

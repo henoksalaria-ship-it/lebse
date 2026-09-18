@@ -1,0 +1,4 @@
+import React,{createContext,useContext} from 'react';
+export const Consent=createContext({choice:null});
+const placeholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><rect width="400" height="500" fill="#e8e1d7"/><path d="M165 215v-20a35 35 0 0 1 70 0v20m-85 0h100v85H150z" fill="none" stroke="#b3a38e" stroke-width="4"/><text x="200" y="340" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#77695b">External photograph disabled</text></svg>');
+export function PrivacyImage({src,alt='',...props}){const {choice}=useContext(Consent);const external=typeof src==='string'&&/^https?:/.test(src);return <img {...props} referrerPolicy="no-referrer" src={!external||choice?.external_media?src:placeholder} alt={external&&!choice?.external_media?`${alt} — external photo disabled`:alt}/>;}

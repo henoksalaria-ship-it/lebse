@@ -1,0 +1,17 @@
+ALTER TABLE users ADD COLUMN IF NOT EXISTS closet_description text NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_version integer NOT NULL DEFAULT 1;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS sequence bigserial;
+CREATE UNIQUE INDEX IF NOT EXISTS messages_sequence ON messages(sequence);
+CREATE TABLE IF NOT EXISTS conversation_reads(conversation_id text REFERENCES conversations(id),user_id text REFERENCES users(id),through_sequence bigint NOT NULL DEFAULT 0,read_at timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(conversation_id,user_id));
+CREATE TABLE IF NOT EXISTS recently_viewed(user_id text REFERENCES users(id),listing_id text REFERENCES listings(id),viewed_at timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(user_id,listing_id));
+CREATE TABLE IF NOT EXISTS saved_searches(id text PRIMARY KEY,user_id text NOT NULL REFERENCES users(id),name text NOT NULL,filters jsonb NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS collections(id text PRIMARY KEY,user_id text NOT NULL REFERENCES users(id),name text NOT NULL,created_at timestamptz NOT NULL DEFAULT now(),UNIQUE(user_id,name),UNIQUE(id,user_id));
+CREATE TABLE IF NOT EXISTS collection_items(collection_id text,user_id text,listing_id text,PRIMARY KEY(collection_id,listing_id),FOREIGN KEY(collection_id,user_id) REFERENCES collections(id,user_id) ON DELETE CASCADE,FOREIGN KEY(user_id,listing_id) REFERENCES saved_items(user_id,listing_id) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS addresses(id text PRIMARY KEY,user_id text NOT NULL REFERENCES users(id),label text NOT NULL,address jsonb NOT NULL,is_default boolean NOT NULL DEFAULT false,version integer NOT NULL DEFAULT 1,created_at timestamptz NOT NULL DEFAULT now());
+CREATE UNIQUE INDEX IF NOT EXISTS one_default_address ON addresses(user_id) WHERE is_default;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_confirmation_required boolean NOT NULL DEFAULT false;
+CREATE TABLE IF NOT EXISTS order_pickup_confirmations(order_id text PRIMARY KEY REFERENCES orders(id),seller_id text NOT NULL REFERENCES users(id),quote_id text NOT NULL REFERENCES delivery_quotes(id),notes text NOT NULL DEFAULT '',confirmed_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS order_issues(id text PRIMARY KEY,order_id text NOT NULL REFERENCES orders(id),buyer_id text NOT NULL REFERENCES users(id),seller_id text NOT NULL REFERENCES users(id),kind text NOT NULL CHECK(kind IN ('missing','damaged','incorrect','cancellation')),description text NOT NULL,status text NOT NULL DEFAULT 'submitted' CHECK(status IN ('submitted','under_review','awaiting_evidence','return_approved','return_in_transit','returned','resolved','rejected')),resolution text,return_instructions text,return_tracking text,version integer NOT NULL DEFAULT 1,created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now(),UNIQUE(order_id));
+CREATE TABLE IF NOT EXISTS issue_events(id text PRIMARY KEY,issue_id text NOT NULL REFERENCES order_issues(id),actor_id text,actor_role text NOT NULL,label text NOT NULL,detail text NOT NULL DEFAULT '',created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS issue_evidence(id text PRIMARY KEY,issue_id text NOT NULL REFERENCES order_issues(id),uploader_id text NOT NULL REFERENCES users(id),mime text NOT NULL,data_base64 text NOT NULL,bytes integer NOT NULL CHECK(bytes BETWEEN 1 AND 6291456),created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS issue_participants ON order_issues(buyer_id,seller_id);

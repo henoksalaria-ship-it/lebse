@@ -1,0 +1,8 @@
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_required boolean NOT NULL DEFAULT false;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_quote_id text;
+CREATE TABLE IF NOT EXISTS pickup_profiles(user_id text PRIMARY KEY REFERENCES users(id),address jsonb NOT NULL,parcel jsonb NOT NULL,version integer NOT NULL DEFAULT 1,updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS delivery_quotes(id text PRIMARY KEY,order_id text NOT NULL REFERENCES orders(id),buyer_id text NOT NULL REFERENCES users(id),provider text NOT NULL,amount_minor integer NOT NULL CHECK(amount_minor>=0),pickup jsonb NOT NULL,destination jsonb NOT NULL,parcel jsonb NOT NULL,expires_at timestamptz NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS deliveries(id text PRIMARY KEY,order_id text NOT NULL UNIQUE REFERENCES orders(id),provider text NOT NULL DEFAULT 'mock',reference text NOT NULL UNIQUE,provider_id text UNIQUE,status text NOT NULL DEFAULT 'queued',attempts integer NOT NULL DEFAULT 0,next_attempt_at timestamptz NOT NULL DEFAULT now(),last_error text,proof jsonb,created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS mock_courier_bookings(reference text PRIMARY KEY,provider_id text NOT NULL UNIQUE,state text NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS delivery_events(id text PRIMARY KEY,delivery_id text NOT NULL REFERENCES deliveries(id),body_hash text NOT NULL,state text NOT NULL,applied boolean NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS deliveries_queue ON deliveries(status,next_attempt_at);

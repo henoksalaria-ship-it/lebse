@@ -1,0 +1,4 @@
+node_modules
+.expo
+.pnpm-store
+dist

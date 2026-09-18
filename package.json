@@ -1,0 +1,32 @@
+{
+  "name": "lebse",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "backend": "node server/index.mjs",
+    "test": "node --test tests/marketplace.test.mjs tests/security.test.mjs tests/delivery.test.mjs tests/operations.test.mjs tests/seller.test.mjs tests/experience.test.mjs tests/mobile-origin.test.mjs tests/staging.test.mjs",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "ops:monitor": "node scripts/operations.mjs monitor",
+    "ops:backup": "node scripts/operations.mjs backup",
+    "start:staging": "node server/hosted.mjs",
+    "worker:staging": "node server/worker.mjs",
+    "migrate:staging": "node scripts/staging-migrate.mjs",
+    "prove:staging": "node scripts/staging-workflow.mjs"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@vercel/functions": "3.9.7",
+    "lucide-react": "^1.42.0",
+    "pg": "8.23.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "vite": "^8.2.2"
+  },
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24 <25"
+  }
+}
