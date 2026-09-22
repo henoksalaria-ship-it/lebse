@@ -1,3 +1,4 @@
+import {getPreferences,savePreferences} from './preferences.mjs';
 import {readFile} from 'node:fs/promises';
 import {createHash,randomUUID,timingSafeEqual} from 'node:crypto';
 export const legal=JSON.parse(await readFile(new URL('../src/legal-documents.json',import.meta.url),'utf8'));
@@ -45,6 +46,8 @@ export async function securityRoutes({db,req,body,user,fail,adminToken}){
  if(!route.startsWith('/api/security/'))return undefined;
  if(route==='/api/security/session'&&method==='GET')return {csrf:req.sessionToken?csrfFor(req.sessionToken):null,user_id:user?.id||null};
  if(!user)fail('Sign in to continue.',401);
+ if(route==='/api/security/preferences'&&method==='GET')return {preferences:await getPreferences(db,user.id)};
+ if(route==='/api/security/preferences'&&method==='POST')return {preferences:await savePreferences(db,user.id,body.shopping_interest,fail)};
  if(route==='/api/security/accept'&&method==='POST'){if(!await acceptLegal(db,user,body))fail('Read and explicitly accept the current terms and confirm your age.');return {ok:true};}
  if(route==='/api/security/sessions/revoke'&&method==='POST'){await db.query('DELETE FROM sessions WHERE user_id=$1',[user.id]);await audit(db,user.id,'all_sessions_revoked',user.id);return {ok:true,__logout:true};}
  if(route==='/api/security/center'&&method==='GET')return {legal_version:legal.version,accepted:await hasLegal(db,user),cases:(await db.query('SELECT id,subject_type,subject_id,hold,status,resolution,created_at FROM safety_cases WHERE user_id=$1 ORDER BY created_at DESC',[user.id])).rows,requests:(await db.query('SELECT id,kind,subject_id,status,response,created_at FROM safety_requests WHERE user_id=$1 ORDER BY created_at DESC',[user.id])).rows};
@@ -55,3 +58,4 @@ export async function securityRoutes({db,req,body,user,fail,adminToken}){
  }
  fail('Not found.',404);
 }
+

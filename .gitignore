@@ -1,6 +1,11 @@
 node_modules/
 dist/
+dist-ios-design/
 work/
 .env
 .env.*
 !.env.example
+
+.pnpm-store/
+.expo/
+

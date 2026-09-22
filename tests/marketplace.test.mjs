@@ -10,7 +10,7 @@ const address={name:'Test Buyer',phone:'0911223344',street:'Test street 10',area
 test('persistent marketplace: separate identities, offers, payment, delivery, reviews and conflicts',async t=>{
  const h=await startTestApp();t.after(()=>h.close());
  const post=(route,token,body)=>h.request(route,{method:'POST',token,body});
- const signup=async(name)=>expectStatus(await post('/auth/signup',null,{name,username:name,email:`${name}@example.test`,password:TEST_PASSWORD,accept_terms:true,age_confirmed:true,terms_version:legal.version}),200);
+ const signup=async(name)=>expectStatus(await post('/auth/signup',null,{name,username:name,email:`${name}@example.test`,password:TEST_PASSWORD,shopping_interest:'both',accept_terms:true,age_confirmed:true,terms_version:legal.version}),200);
  const seller=await signup('seller'),buyer=await signup('buyer'),outsider=await signup('outsider');let listing,order,conversation,quoteId;expectStatus(await post('/delivery/pickup',seller.token,{address,parcel:{weight_kg:1,length_cm:30,width_cm:25,height_cm:8}}),200);
  await t.test('private data and sessions are scoped to each account',async()=>{
   expectStatus(await h.request('/me'),401);expectStatus(await post('/auth/login',null,{email:'buyer@example.test',password:'WrongPassword2026'}),401);
@@ -116,3 +116,4 @@ test('persistent marketplace: separate identities, offers, payment, delivery, re
   expectStatus(await post('/auth/logout',buyer.token,{}),200);expectStatus(await h.request('/me',{token:buyer.token}),401);
  });
 });
+

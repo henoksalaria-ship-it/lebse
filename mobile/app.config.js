@@ -1,9 +1,6 @@
-const appUrl=process.env.EXPO_PUBLIC_MARKETPLACE_URL;
-if(process.env.EAS_BUILD&&(!appUrl||!/^https:\/\//.test(appUrl)))throw new Error('Set EXPO_PUBLIC_MARKETPLACE_URL to the reviewed HTTPS marketplace origin before creating a phone build. Localhost is for Expo Go / USB development only.');
-export default {
- expo:{name:'Lebse',slug:'lebse-mobile',scheme:'lebse',version:'0.2.0',orientation:'portrait',userInterfaceStyle:'light',backgroundColor:'#f8f5ee',
-  ios:{supportsTablet:true,bundleIdentifier:'com.lebse.marketplace',infoPlist:{NSCameraUsageDescription:'Add photos of your own pieces and order evidence.',NSPhotoLibraryUsageDescription:'Choose listing and order evidence photos.',ITSAppUsesNonExemptEncryption:false}},
-  android:{package:'com.lebse.marketplace',permissions:['android.permission.INTERNET'],blockedPermissions:['android.permission.RECORD_AUDIO','android.permission.ACCESS_FINE_LOCATION','android.permission.ACCESS_COARSE_LOCATION']},
-  plugins:['expo-router'],experiments:{typedRoutes:true},extra:{marketplaceOrigin:appUrl||null,eas:{projectId:'ac898d38-2199-44c0-80cc-40d6d156d94d'}}
- }
-};
+const production=['production','production-apk'].includes(process.env.EAS_BUILD_PROFILE)||process.env.EXPO_PUBLIC_LEBSE_ENV==='production';
+const supabaseUrl=process.env.EXPO_PUBLIC_SUPABASE_URL||(production?'':'https://cbkjondhiftswrmxllwn.supabase.co');
+const supabasePublishableKey=process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY||(production?'':'sb_publishable_CisLLWyDL-HRpZrWWoPX1Q_mkT_yMwf');
+if(production&&(!supabaseUrl||!supabasePublishableKey||supabaseUrl.includes('cbkjondhiftswrmxllwn')))throw Error('Production needs an explicitly configured production Supabase project. Staging is not production.');
+export default {expo:{name:'Lebse',slug:'lebse-mobile',scheme:'lebse',version:'0.3.0',orientation:'portrait',userInterfaceStyle:'light',backgroundColor:'#f8f5ee',ios:{supportsTablet:false,bundleIdentifier:'com.lebse.marketplace',infoPlist:{ITSAppUsesNonExemptEncryption:false}},android:{package:'com.lebse.marketplace',blockedPermissions:['android.permission.RECORD_AUDIO','android.permission.ACCESS_FINE_LOCATION','android.permission.ACCESS_COARSE_LOCATION']},plugins:['expo-router','expo-secure-store',['expo-image-picker',{photosPermission:'Choose photos of clothing to add to your Lebse listing.',cameraPermission:'Take photos of your clothing when you choose Take photo.',microphonePermission:false}]],extra:{supabaseUrl,supabasePublishableKey,eas:{projectId:'ac898d38-2199-44c0-80cc-40d6d156d94d'}}}};
+

@@ -1,3 +1,4 @@
+import {getPreferences,savePreferences,validateInterest} from './preferences.mjs';
 import {setupExperience,experienceRoutes,profileStats,readInfo} from './experience.mjs';
 import {issueRoutes} from './issues.mjs';
 import {saveBackup,operationalStatus} from './operations.mjs';
@@ -32,7 +33,7 @@ export async function createApp({database=null,staging=null,migrate=true,dataDir
  if(!database&&dataDir!=='memory://')await mkdir(dataDir,{recursive:true});
  const db=database||new PGlite(dataDir);await db.waitReady;
  if(migrate){await db.exec(await readFile(new URL('./schema.sql',import.meta.url),'utf8'));
- await setupSecurity(db);await setupDelivery(db);await setupSeller(db);await setupExperience(db);}
+ await setupSecurity(db);await setupDelivery(db);await setupSeller(db);await setupExperience(db);await db.exec(await readFile(new URL('./onboarding-schema.sql',import.meta.url),'utf8'));}
  if(staging){const marker=await row(db,"SELECT environment FROM staging_metadata WHERE id=true");if(marker?.environment!=='staging')throw new Error('Not a staging database.');}
 
  if(seed&&!(await row(db,'SELECT id FROM users LIMIT 1'))){
@@ -64,7 +65,7 @@ export async function createApp({database=null,staging=null,migrate=true,dataDir
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))fail('Enter a valid email address.');
     const key=`${(req.clientAddress||req.socket.remoteAddress)}:${email}`;const window=rates.get(key)||{count:0,until:Date.now()+600000};if(window.until<Date.now()){window.count=0;window.until=Date.now()+600000;}window.count++;rates.set(key,window);if(window.count>30)fail('Too many attempts. Try again in ten minutes.',429);
     let u=await row(tx,'SELECT * FROM users WHERE email=$1',[email]);
-    if(id==='signup'){if(body.accept_terms!==true||body.age_confirmed!==true||body.terms_version!==legal.version)fail('Read and accept the current terms and confirm you are at least 18.',400,'terms_required');if(u)fail('An account already uses that email.',409);const username=text(body.username,'Username',3,30).toLowerCase();if(!/^[a-z0-9._]+$/.test(username))fail('Use letters, numbers, dots or underscores for your username.');if(await row(tx,'SELECT id FROM users WHERE username=$1',[username]))fail('That username is already taken.',409);const uidValue=uid();await tx.query('INSERT INTO users(id,email,name,username,password_hash) VALUES($1,$2,$3,$4,$5)',[uidValue,email,text(body.name,'Name',1,60),username,passwordHash(password)]);u=await row(tx,'SELECT * FROM users WHERE id=$1',[uidValue]);}
+    if(id==='signup'){validateInterest(body.shopping_interest,fail);if(body.accept_terms!==true||body.age_confirmed!==true||body.terms_version!==legal.version)fail('Read and accept the current terms and confirm you are at least 18.',400,'terms_required');if(u)fail('An account already uses that email.',409);const username=text(body.username,'Username',3,30).toLowerCase();if(!/^[a-z0-9._]+$/.test(username))fail('Use letters, numbers, dots or underscores for your username.');if(await row(tx,'SELECT id FROM users WHERE username=$1',[username]))fail('That username is already taken.',409);const uidValue=uid();await tx.query('INSERT INTO users(id,email,name,username,password_hash) VALUES($1,$2,$3,$4,$5)',[uidValue,email,text(body.name,'Name',1,60),username,passwordHash(password)]);u=await row(tx,'SELECT * FROM users WHERE id=$1',[uidValue]);await savePreferences(tx,uidValue,body.shopping_interest,fail);}
     else if(!u||!checkPassword(password,u.password_hash))fail('Email or password is incorrect.',401);
     const token=randomBytes(32).toString('hex');await tx.query('INSERT INTO sessions(token_hash,user_id,expires_at) VALUES($1,$2,$3)',[hash(token),u.id,future(12*3600000)]);if(body.accept_terms===true&&!await acceptLegal(tx,u,body))fail('Choose the current terms version.');await audit(tx,u.id,id==='signup'?'account_created':'signed_in',u.id);return {...(allowBearer?{token}:{}),__session:token,csrf:csrfFor(token),user:publicUser(u)};
    }
@@ -73,7 +74,7 @@ export async function createApp({database=null,staging=null,migrate=true,dataDir
   if(name==='bootstrap'){
    const publicUsers=(await rows(tx,'SELECT id,name,username,bio,closet_description,city FROM users')).map(publicUser);
    const list=await rows(tx,"SELECT l.*,u.username AS seller,u.name AS seller_name FROM listings l JOIN users u ON u.id=l.seller_id WHERE l.status IN ('active','reserved','sold') ORDER BY l.created_at DESC,l.id");
-   const result={csrf:req.sessionToken?csrfFor(req.sessionToken):null,legal_version:legal.version,terms_accepted:await hasLegal(tx,user),user:publicUser(user),users:publicUsers,listings:list.map(p=>({...p,price:p.price_minor/100,image:p.images[0]})),saved:[],following:[],conversations:[],orders:[],notifications:[]};
+   const result={csrf:req.sessionToken?csrfFor(req.sessionToken):null,legal_version:legal.version,terms_accepted:await hasLegal(tx,user),user:publicUser(user),preferences:await getPreferences(tx,user?.id),users:publicUsers,listings:list.map(p=>({...p,price:p.price_minor/100,image:p.images[0]})),saved:[],following:[],conversations:[],orders:[],notifications:[]};
    if(user){result.saved=(await rows(tx,'SELECT listing_id FROM saved_items WHERE user_id=$1',[user.id])).map(v=>v.listing_id);result.following=(await rows(tx,'SELECT seller_id FROM follows WHERE user_id=$1',[user.id])).map(v=>v.seller_id);for(const c of await rows(tx,'SELECT id FROM conversations WHERE buyer_id=$1 OR seller_id=$1 ORDER BY updated_at DESC',[user.id]))result.conversations.push(await conversation(tx,c.id,user));for(const o of await rows(tx,'SELECT id FROM orders WHERE buyer_id=$1 OR seller_id=$1 ORDER BY created_at DESC',[user.id]))result.orders.push(await order(tx,o.id,user));result.notifications=await rows(tx,'SELECT * FROM notifications WHERE user_id=$1 ORDER BY created_at DESC LIMIT 100',[user.id]);}return result;
   }
   if(name==='me')return {user:publicUser(requireUser(user))};
@@ -192,4 +193,5 @@ export async function createApp({database=null,staging=null,migrate=true,dataDir
 }
 function send(res,status,data){res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(data));}
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){const app=await createApp();const port=await app.start();console.log(`Lebse local PostgreSQL sandbox ready at http://127.0.0.1:${port}`);for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{await app.close();process.exit(0);});}
+
 

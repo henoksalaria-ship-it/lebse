@@ -4,9 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev:ios-design": "vite --config vite.ios-design.config.js --open /ios-design.html",
+    "build:ios-design": "vite build --config vite.ios-design.config.js",
     "dev": "node scripts/dev.mjs",
     "backend": "node server/index.mjs",
-    "test": "node --test tests/marketplace.test.mjs tests/security.test.mjs tests/delivery.test.mjs tests/operations.test.mjs tests/seller.test.mjs tests/experience.test.mjs tests/mobile-origin.test.mjs tests/staging.test.mjs",
+    "test": "node --test tests/release-config.test.mjs tests/hosted-backend.test.mjs tests/onboarding.test.mjs tests/marketplace.test.mjs tests/security.test.mjs tests/delivery.test.mjs tests/operations.test.mjs tests/seller.test.mjs tests/experience.test.mjs tests/mobile-origin.test.mjs tests/staging.test.mjs",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "ops:monitor": "node scripts/operations.mjs monitor",
@@ -14,10 +16,12 @@
     "start:staging": "node server/hosted.mjs",
     "worker:staging": "node server/worker.mjs",
     "migrate:staging": "node scripts/staging-migrate.mjs",
-    "prove:staging": "node scripts/staging-workflow.mjs"
+    "prove:staging": "node scripts/staging-workflow.mjs",
+    "dev:hosted": "vite"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",
+    "@supabase/supabase-js": "2.116.0",
     "@vercel/functions": "3.9.7",
     "lucide-react": "^1.42.0",
     "pg": "8.23.0",
@@ -30,3 +34,4 @@
     "node": ">=24 <25"
   }
 }
+

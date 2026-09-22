@@ -12,7 +12,7 @@ try {
     const runtime = (await tx.query("SELECT rolname FROM pg_roles WHERE rolname='lebse_runtime'")).rows[0];
     if (!runtime) throw new Error('Create the restricted lebse_runtime login using the setup instructions first.');
     await tx.exec('CREATE TABLE IF NOT EXISTS schema_migrations(name text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now());');
-    for (const file of ['schema.sql','security-schema.sql','delivery-schema.sql','seller-schema.sql','experience-schema.sql']) {
+    for (const file of ['schema.sql','security-schema.sql','delivery-schema.sql','seller-schema.sql','experience-schema.sql','onboarding-schema.sql']) {
       const sql = await readFile(new URL(`../server/${file}`, import.meta.url), 'utf8');
       const checksum = createHash('sha256').update(sql).digest('hex');
       const old = (await tx.query('SELECT checksum FROM schema_migrations WHERE name=$1',[file])).rows[0];
@@ -42,3 +42,4 @@ try {
   });
   console.log('Staging schema migrated. Marketplace tables remain outside the public Data API.');
 } finally { await db.close(); }
+

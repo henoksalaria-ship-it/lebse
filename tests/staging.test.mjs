@@ -53,7 +53,7 @@ test('PostgreSQL adapter keeps all transactional work on one connection and roll
 
 test('private staging gate, secure cookies and complete simulated purchase/delivery workflow', async t => {
   const db=new PGlite();await db.waitReady;
-  for (const file of ['schema.sql','security-schema.sql','delivery-schema.sql','seller-schema.sql','experience-schema.sql']) await db.exec(await readFile(new URL('../server/'+file,import.meta.url),'utf8'));
+  for (const file of ['schema.sql','security-schema.sql','delivery-schema.sql','seller-schema.sql','experience-schema.sql','onboarding-schema.sql']) await db.exec(await readFile(new URL('../server/'+file,import.meta.url),'utf8'));
   await setupSecurity(db);await db.exec("CREATE TABLE staging_metadata(id boolean PRIMARY KEY,environment text); INSERT INTO staging_metadata VALUES(true,'staging');");
   const app=await createApp({database:db,staging:stagingConfig(env),seed:false,migrate:false,deliveryWorker:false,webhookSecret:env.LEBSE_TEST_WEBHOOK_SECRET});
   t.after(()=>app.close());const base=`http://127.0.0.1:${await app.start(0)}`;
@@ -70,3 +70,4 @@ test('private staging gate, secure cookies and complete simulated purchase/deliv
   assert.match(consent.headers.get('set-cookie'),/; Secure/);
   assert.match(consent.headers.get('set-cookie'),/HttpOnly; SameSite=Strict/);
 });
+

@@ -1,7 +1,7 @@
 import React,{createContext,useCallback,useContext,useEffect,useRef,useState} from 'react';
 import {api,command,session} from './api';
 const Context=createContext(null);
-const empty={user:null,listings:[],users:[],saved:[],following:[],conversations:[],orders:[],notifications:[]};
+const empty={user:null,preferences:null,listings:[],users:[],saved:[],following:[],conversations:[],orders:[],notifications:[]};
 export function Store({children}){
  const [data,setData]=useState(empty),[loading,setLoading]=useState(true),[error,setError]=useState(''),[toast,setToast]=useState('');
  const refreshing=useRef(null),generation=useRef(0),navigationGuard=useRef(null);
@@ -27,3 +27,4 @@ export function useResource(path){
  useEffect(()=>{let active=true;setLoading(true);setValue(null);setError('');if(!path){setLoading(false);return;}const controller=new AbortController();api(path,{signal:controller.signal}).then(result=>{if(active)setValue(result);}).catch(e=>{if(active&&e.name!=='AbortError')setError(e.message);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;controller.abort();};},[path]);
  return {value,error,loading,reload};
 }
+

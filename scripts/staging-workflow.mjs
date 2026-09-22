@@ -26,7 +26,7 @@ export async function purchaseDeliveryProof({makeClient, webhookSecret, processJ
   assert.equal(health.payments,'simulated'); assert.equal(health.delivery,'mock');
   const legal = await guest('/legal'), run = randomUUID().slice(0,8);
   const account = role => ({name:`QA ${role} ${run}`,username:`qa.${role}.${run}`,email:`qa.${role}.${run}@example.test`,
-    password:randomBytes(24).toString('hex'),accept_terms:true,age_confirmed:true,terms_version:legal.version});
+    shopping_interest:'both',password:randomBytes(24).toString('hex'),accept_terms:true,age_confirmed:true,terms_version:legal.version});
   await seller('/auth/signup',account('seller')); await buyer('/auth/signup',account('buyer'));
   const address = {name:'QA recipient',phone:'0911223344',street:'Fictional staging address — no delivery',area:'Bole',lat:9,lon:38.7};
   await seller('/delivery/pickup',{address,parcel:{weight_kg:1,length_cm:30,width_cm:25,height_cm:8}});
@@ -84,3 +84,4 @@ async function main() {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch(() => {
   console.error('Staging workflow did not pass. Inspect the staging API and worker logs; no success is claimed.');process.exitCode=1;
 });
+
