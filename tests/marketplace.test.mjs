@@ -116,4 +116,3 @@ test('persistent marketplace: separate identities, offers, payment, delivery, re
   expectStatus(await post('/auth/logout',buyer.token,{}),200);expectStatus(await h.request('/me',{token:buyer.token}),401);
  });
 });
-

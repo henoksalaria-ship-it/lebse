@@ -50,4 +50,3 @@ test('edge blocks commerce before calling upstream and rejects forged image data
  assert.throws(()=>decodePhoto('data:image/png;base64,YmFk'),/invalid_photo/);
  const result=await createHandler(k=>({SUPABASE_URL:'x',SUPABASE_ANON_KEY:'x',LEBSE_ENV:'production'})[k])(new Request('https://example.test/api/bootstrap'));assert.equal(result.status,503);
 });
-

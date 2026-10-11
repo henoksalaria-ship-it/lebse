@@ -238,4 +238,3 @@ create function public.lb_api(op text,p jsonb default '{}') returns jsonb langua
 revoke all on function public.lb_api(text,jsonb) from public;
 grant execute on function public.lb_api(text,jsonb) to anon,authenticated;
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) values('lebse-photos','lebse-photos',false,6291456,array['image/jpeg','image/png','image/webp']) on conflict(id) do nothing;
-

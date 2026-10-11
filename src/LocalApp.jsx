@@ -56,4 +56,3 @@ function App(){
 }
 class AppBoundary extends React.Component{state={failed:false};static getDerivedStateFromError(){return {failed:true};}render(){return this.state.failed?<div className="page"><h1>A little interruption.</h1><p>Your saved marketplace data is safe. Reload to try again.</p><button onClick={()=>location.reload()}>Reload Lebse</button></div>:this.props.children;}}
 export default function LocalApp(){return <AppBoundary><ConsentProvider><Store><App/></Store></ConsentProvider></AppBoundary>;}
-

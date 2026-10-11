@@ -22,9 +22,9 @@ Updated 22 September 2026. This is a connected beta implementation, not approval
 
 ## Verification and limits
 
-The earlier 73-test suite passed, including isolated database ownership/session tests. Release configuration regression tests were added. Web build and native TypeScript checks pass. Earlier iOS/Android JavaScript exports passed; these are not signed device builds.
+All 75 automated tests passed, including isolated database ownership/session tests and release configuration regression tests. Web build and native TypeScript checks pass. Earlier iOS/Android JavaScript exports passed; these are not signed device builds.
 
-Live staging health, bootstrap and listings respond; commerce is disabled. The Codex browser reports `ERR_BLOCKED_BY_CLIENT` for the Supabase domain even though direct HTTP and CORS preflight checks succeed. Browser-to-backend acceptance therefore remains unverified in this environment.
+Live staging health, bootstrap and listings respond; commerce is disabled. A transient browser connection block recovered. The browser subsequently loaded the hosted empty marketplace and API-served terms, and sign-in/recovery navigation was checked. Authenticated two-account acceptance remains unverified.
 
 ## Required before a beta acceptance pass
 
@@ -43,4 +43,3 @@ Live staging health, bootstrap and listings respond; commerce is disabled. The C
 - Optional tracking must stay absent until a separate informed consent flow and disclosures exist. Essential session storage should be disclosed in the final privacy notice.
 
 Do not describe a successful build, health response, or mocked database test as proof that email, native device behavior, moderation operations or the production service are ready.
-

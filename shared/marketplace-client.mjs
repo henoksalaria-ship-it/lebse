@@ -14,4 +14,3 @@ export function createMarketplace({url,key,storage,redirectTo,detectSessionInUrl
  async function callback(url){const parsed=new URL(url),code=parsed.searchParams.get('code');if(code){const {error}=await supabase.auth.exchangeCodeForSession(code);if(error)throw error;}else if(parsed.searchParams.get('error_description'))throw Error(parsed.searchParams.get('error_description'));}
  return {supabase,api,login,signup,recover,callback,redirectTo};
 }
-

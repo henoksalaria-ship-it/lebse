@@ -31,4 +31,3 @@ test('two accounts choose private interests, publish, discover, save and message
  await h.app.db.query('DELETE FROM shopping_preferences WHERE user_id=$1',[seller.user.id]);
  assert.equal(expectStatus(await h.request('/bootstrap',{token:seller.token}),200).preferences,null);
 });
-

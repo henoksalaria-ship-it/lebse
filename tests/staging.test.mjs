@@ -70,4 +70,3 @@ test('private staging gate, secure cookies and complete simulated purchase/deliv
   assert.match(consent.headers.get('set-cookie'),/; Secure/);
   assert.match(consent.headers.get('set-cookie'),/HttpOnly; SameSite=Strict/);
 });
-

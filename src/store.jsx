@@ -27,4 +27,3 @@ export function useResource(path){
  useEffect(()=>{let active=true;setLoading(true);setValue(null);setError('');if(!path){setLoading(false);return;}const controller=new AbortController();api(path,{signal:controller.signal}).then(result=>{if(active)setValue(result);}).catch(e=>{if(active&&e.name!=='AbortError')setError(e.message);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;controller.abort();};},[path]);
  return {value,error,loading,reload};
 }
-

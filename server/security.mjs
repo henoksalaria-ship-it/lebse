@@ -58,4 +58,3 @@ export async function securityRoutes({db,req,body,user,fail,adminToken}){
  }
  fail('Not found.',404);
 }
-

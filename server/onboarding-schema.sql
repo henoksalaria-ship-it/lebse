@@ -3,4 +3,3 @@ CREATE TABLE IF NOT EXISTS shopping_preferences (
   shopping_interest text NOT NULL CHECK (shopping_interest IN ('menswear','womenswear','both')),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
-

@@ -194,4 +194,3 @@ export async function createApp({database=null,staging=null,migrate=true,dataDir
 function send(res,status,data){res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(data));}
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){const app=await createApp();const port=await app.start();console.log(`Lebse local PostgreSQL sandbox ready at http://127.0.0.1:${port}`);for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{await app.close();process.exit(0);});}
 
-

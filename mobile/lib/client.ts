@@ -22,4 +22,3 @@ export async function api(path:string,body?:unknown,method=body===undefined?'GET
  const text=await response.text();let value;try{value=JSON.parse(text);}catch{throw Error('The marketplace is not responding. Please try again.');}
  if(!response.ok){const error=Object.assign(new Error(value.error||'Please try again.'),{code:value.code,status:response.status});throw error;}return value;
 }
-

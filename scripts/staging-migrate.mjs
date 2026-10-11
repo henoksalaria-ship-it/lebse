@@ -42,4 +42,3 @@ try {
   });
   console.log('Staging schema migrated. Marketplace tables remain outside the public Data API.');
 } finally { await db.close(); }
-

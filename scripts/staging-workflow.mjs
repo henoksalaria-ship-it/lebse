@@ -84,4 +84,3 @@ async function main() {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch(() => {
   console.error('Staging workflow did not pass. Inspect the staging API and worker logs; no success is claimed.');process.exitCode=1;
 });
-

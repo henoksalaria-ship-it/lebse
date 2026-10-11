@@ -12,4 +12,3 @@ export function SessionProvider({children}:{children:React.ReactNode}){
  useEffect(()=>{let live=true;setLoading(true);setBoot(null);(async()=>{if(!configured)throw Error('This build needs a secure backend configuration.');if(session){const r=await supabase.auth.mfa.getAuthenticatorAssuranceLevel();if(r.error)throw r.error;if(r.data.nextLevel==='aal2'&&r.data.currentLevel!=='aal2'){if(live)setMfa(true);return;}}if(live)setMfa(false);const b=await api('/bootstrap');if(live){setBoot(b);setError('');}})().catch(e=>{if(live)setError(e.message);}).finally(()=>{if(live)setLoading(false);});return()=>{live=false;};},[revision]);
  return <Context.Provider value={{session,boot,loading,error,mfa,refresh}}>{children}</Context.Provider>;
 }
-

@@ -12,4 +12,3 @@ export async function savePreferences(db, userId, value, fail) {
   await db.query('INSERT INTO shopping_preferences(user_id,shopping_interest) VALUES($1,$2) ON CONFLICT(user_id) DO UPDATE SET shopping_interest=$2,updated_at=now()', [userId, interest]);
   return {shopping_interest: interest};
 }
-

@@ -21,4 +21,3 @@ test('production website build cannot select the local fixture interface',async(
  assert.equal(eas.build.production.env.EXPO_PUBLIC_LEBSE_ENV,'production');
  assert.equal(eas.build['production-apk'].extends,'production');
 });
-
